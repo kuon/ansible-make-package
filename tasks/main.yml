@@ -1,0 +1,51 @@
+- name: Install compiler packages
+  yum: name={{ item }}
+  with_items:
+  - make
+  - gcc
+  - git
+  - tar
+  - bzip2
+  - patch
+  - gcc-c++
+  - lzop
+
+- name: Install required packages
+  yum: name={{ item }}
+  with_items: required_packages
+
+- name: Check if provides is present
+  shell: which {{ provides }} || ls /{{ provides }}
+  ignore_errors: true
+  register: result
+
+- name: Create tmp dir
+  file: path=/tmp/{{ provides|basename }}/install state=directory
+  when: result|failed
+
+- name: Download {{ provides }}
+  get_url: url={{ url }} dest=/tmp/{{ provides|basename }}/{{ url|basename }}
+  when: result|failed and url is defined
+
+- name: Unarchive {{ provides }}
+  unarchive: src=/tmp/{{ provides|basename }}/{{ url|basename }} dest=/tmp/{{ provides|basename }}/install copy=no
+  when: result|failed and url is defined
+
+- name: Git clone
+  command: git clone {{ git_url }} /tmp/{{ provides|basename }}/install/{{ provides|basename }}
+  when: result|failed and git_url is defined
+
+- name: Get dir name
+  command: ls -1 /tmp/{{ provides|basename }}/install
+  when: result|failed
+  register: dirname
+
+- name: Compile and install {{ provides }}
+  command: '{{ item }}'
+  args:
+    chdir: /tmp/{{ provides|basename }}/install/{{ dirname.stdout }}
+  when: result|failed
+  with_items: build
+
+- name: Cleanup
+  file: path=/tmp/{{ provides|basename }} state=absent
