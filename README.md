@@ -1,14 +1,3 @@
-
-# THIS REPOSITORY HAS MOVED
-
-New URL: https://git.goyman.com/kuon/ansible-make-package
-
-Why I moved everything out of GitHub:
-
-https://github.com/kuon/WhyILeftGithub/blob/main/README.md
-
-----
-
 Make Package
 ============
 
